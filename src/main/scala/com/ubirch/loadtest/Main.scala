@@ -1,6 +1,6 @@
 package com.ubirch.loadtest
 
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 
 /**
   * Main startup code.
@@ -14,4 +14,6 @@ object Main extends App {
     logger.info("starting up ...")
     // do something
   }
+
+  startUp()
 }

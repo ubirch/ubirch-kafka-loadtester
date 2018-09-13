@@ -52,6 +52,7 @@
     <scala.minor.version>.6</scala.minor.version>
     <scala.version>${scala.major.version}${scala.minor.version}</scala.version>
     <!-- Logging -->
+    <logback.version>1.0.7</logback.version>
     <scala-logging.version>3.9.0</scala-logging.version>
     <logback-classic.version>1.2.3</logback-classic.version>
 
@@ -78,6 +79,11 @@
       <groupId>com.typesafe.scala-logging</groupId>
       <artifactId>scala-logging_${scala.major.version}</artifactId>
       <version>${scala-logging.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
     </dependency>
 
     <!-- test dependencies -->
