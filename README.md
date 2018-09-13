@@ -1,2 +1,4 @@
 # ubirch-kafka-loadtester
-simple Gatling based Kafka load tester 
+
+Simple Gatling based Kafka load tester.
+ 
