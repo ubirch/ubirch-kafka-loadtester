@@ -19,13 +19,15 @@ object KafkaStreamsRunner extends App with KafkaSteamsConfig with Logging{
   val inputStream = builder.stream("inputTopic1", Consumed.`with`(stringSerde, stringSerde))
   val streams: KafkaStreams = new KafkaStreams(builder.build(), streamsConfiguration)
 
-  val outputStream = inputStream.through("outputTopic1", Produced.`with`(stringSerde, stringSerde))
+  //val outputStream = inputStream.through("outputTopic1", Produced.`with`(stringSerde, stringSerde))
+  inputStream.to("output", Produced.`with`(stringSerde, stringSerde))
 
-  outputStream.foreach(  (k, v) => logger.info(s"${v}") )
 
-  streams.metrics().asScala.foreach{ case (metricName, metric) =>
-      logger.info(s"METRIC [${metricName.description()}]: ${metric.metricValue()}")
-  }
+  //inputStream.foreach(  (k, v) => logger.info(s"${v}") )
+
+//  streams.metrics().asScala.foreach{ case (metricName, metric) =>
+//      logger.info(s"METRIC [${metricName.description()}]: ${metric.metricValue()}")
+//  }
 
 
   streams.start()
@@ -35,7 +37,7 @@ object KafkaStreamsRunner extends App with KafkaSteamsConfig with Logging{
 trait KafkaSteamsConfig {
   val streamsConfiguration: Properties = {
     val p = new Properties()
-    p.put(StreamsConfig.APPLICATION_ID_CONFIG, "id-config-1")
+    p.put(StreamsConfig.APPLICATION_ID_CONFIG, "id-config-2")
     p.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
     p.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
     p.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
