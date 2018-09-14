@@ -13,7 +13,7 @@ object SimpleConsumer extends App with Logging {
 
   val consumer = new KafkaConsumer[String, String](loadProperties("consumer.properties"))
 
-  consumer.subscribe(List("outputTopic1").asJava)
+  consumer.subscribe(List("output").asJava)
 
 
 

@@ -13,7 +13,7 @@ object SimpleProducer extends App with Producers with Generators {
   implicit val producer = createProducer(loadProperties("producer.properties"))
 
 
-  sendMessages("inputTopic1")
+  sendMessages("input")
 
 }
 
