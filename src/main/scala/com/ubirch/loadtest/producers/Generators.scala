@@ -1,5 +1,7 @@
 package com.ubirch.loadtest.producers
 
+import org.joda.time.DateTime
+
 import scala.util.Random
 
 /**
@@ -13,7 +15,8 @@ trait Generators {
   case class RandomFiniteMessagesGenerator(messagesCount: Int, messageSize: Int) extends MessageGenerator[String, String] {
     override def messages: Stream[(String, String)] = Range(0, messagesCount)
       .map { index =>
-        index.toString -> Random.nextString(messageSize)
+        val time = DateTime.now().toString("dd/MM/yyyy hh:mm:ss.SSS")
+        index.toString -> s"$time - ${Random.nextString(messageSize)}"
       }.toStream
   }
 }

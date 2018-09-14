@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+kafka-console-consumer --bootstrap-server localhost:9092 --property print.key=true --topic $1 --from-beginning

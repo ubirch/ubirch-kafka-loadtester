@@ -8,7 +8,7 @@ import com.ubirch.loadtest.Utils._
   */
 object SimpleProducer extends App with Producers with Generators {
 
-  implicit val generator = RandomFiniteMessagesGenerator(1000, 100)
+  implicit val generator = RandomFiniteMessagesGenerator(1000, 10)
 
   implicit val producer = createProducer(loadProperties("producer.properties"))
 

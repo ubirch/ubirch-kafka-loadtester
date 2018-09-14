@@ -13,15 +13,15 @@ object SimpleConsumer extends App with Logging {
 
   val consumer = new KafkaConsumer[String, String](loadProperties("consumer.properties"))
 
-  consumer.subscribe(List("inputTopic1").asJava)
+  consumer.subscribe(List("outputTopic1").asJava)
 
 
 
-  val messagesCount = consumer.poll(50000).count()
+
 
   consumer.poll(50000).iterator().asScala.toStream.foreach{ record => logger.info(record.key()) }
   
 
 
-  logger.info(s"MESSAGES READ: ${messagesCount}")
+
 }
