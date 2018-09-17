@@ -14,6 +14,10 @@ case class TimeProcessor[K, V](action: (ProcessorContext, K, V) => Unit) extends
     action(context(), key, value)
     context().forward(key , value)
   }
+
+  override def punctuate(timestamp: Long): Unit = {
+
+  }
 }
 
 

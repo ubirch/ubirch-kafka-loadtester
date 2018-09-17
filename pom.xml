@@ -102,6 +102,14 @@
       <version>0.2.1</version>
     </dependency>
 
+    <!--Type Level -->
+    <dependency>
+      <groupId>org.typelevel</groupId>
+      <artifactId>cats-core_2.12</artifactId>
+      <version>1.2.0</version>
+    </dependency>
+
+
     <dependency>
       <groupId>io.gatling</groupId>
       <artifactId>gatling-core</artifactId>

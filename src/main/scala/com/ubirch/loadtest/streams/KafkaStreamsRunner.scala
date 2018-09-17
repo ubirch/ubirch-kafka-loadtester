@@ -4,7 +4,7 @@ import java.util.Properties
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{Serde, Serdes}
-import org.apache.kafka.streams.kstream.Produced
+import org.apache.kafka.streams.kstream.{KStream, Produced}
 import org.apache.kafka.streams.{Consumed, KafkaStreams, StreamsBuilder, StreamsConfig}
 import com.lightbend.kafka.scala.streams.DefaultSerdes._
 import com.ubirch.loadtest.{Executor, Logging}
@@ -15,7 +15,7 @@ import com.ubirch.loadtest.streams.KafkaStreamsRunner.{builder, streamsConfigura
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.util.Random
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.ArrayBuffer
@@ -26,9 +26,11 @@ import scala.collection.mutable.ArrayBuffer
 object KafkaStreamsRunner extends App with KafkaSteamsConfig with Logging {
 
 
-  override def clientId = s"client-id-1}"
+  override def clientId = s"client-id-2}"
 
-  override val inputTopic = "input"
+  lazy val inputStream = builder.stream(inputTopic, Consumed.`with`(stringSerde, stringSerde))
+
+  val inputTopic = "input"
 
   val timeStamps = ArrayBuffer[Long]()
 
@@ -37,62 +39,89 @@ object KafkaStreamsRunner extends App with KafkaSteamsConfig with Logging {
 
   var minTime = 0L
   var maxTime = 0L
-
-
-
-
-
   var elapsed = 0L
   var n = 0L
-
-
-
-//  Executor.exec(5000 second){
-//    Range(0, 1000).foreach{ _ =>
-//      Thread.sleep(1000)
-//      if(n > 0) logger.info(s"AVG: ${elapsed / n}")
-//    }
-//
-//  }
 
   outputStream.process(TimeStampsProcessor[String, String] { (processorContext, key, _) =>
     val timeStamp = processorContext.timestamp()
     n = if(n > 1000) 0 else (n + 1)
     if(n == 0) elapsed = System.currentTimeMillis() - timeStamp
     else elapsed = elapsed + System.currentTimeMillis() - timeStamp
-
-    //logger.info(s"TIMESTAMP[$key]: ${System.currentTimeMillis() - timeStamp}")
   })
 
   streams.start()
 
-  //Thread.sleep(5000)
-  //logger.info(s"COMPLETED[$maxTime]: ${timeStamps.size}")
 
-  //val processingTime = timeStamps.max - timeStamps.min
-
-  //
-  //logger.info(s"PROCESSING TIME: ${processingTime}")
 
   while (true) {
     Thread.sleep(1000)
     if(n > 0) logger.info(s"ELAPSED: ${elapsed}, $n, AVG: ${elapsed / n}")
   }
 
-//  Range(0, 1000).foreach{ _ =>
-//    Thread.sleep(1000)
-//    if(n > 0) logger.info(s"ELAPSED: ${elapsed}, $n, AVG: ${elapsed / n}")
-//  }
+
 
 }
 
+trait KafkaStreamsRunner extends Logging{
+  self: KafkaSteamsConfig =>
+
+  type STREAM = KStream[String, String]
+
+  case class MessageMeta(creationTimeStamp: Long, processingTime: Long, offset: Option[Long])
+
+  def waitFor[T](duration: Duration, task: Future[T])(action: T => Unit) = action(Await.result(task, duration))
+
+  val messagesMeta = ArrayBuffer[MessageMeta]()
+
+  def inputStream(sourceTopic: String) = builder.stream(sourceTopic, Consumed.`with`(stringSerde, stringSerde))
+
+  def outputStream(targetTopic: String)(input: STREAM) = input.through(targetTopic, Produced.`with`(stringSerde, stringSerde))
+
+  def collectStat(input: STREAM, messagesCount: Int)(outputStreamFunc: STREAM => STREAM) = {
+    val output = outputStreamFunc(input)
+
+    output.process(
+      TimeStampsProcessor[String, String] { (processorContext, key, value) =>
+        processorContext.forward(key, value)
+        val timeStamp = processorContext.timestamp()
+        val processingTime = System.currentTimeMillis() - timeStamp
+        val messageMeta = MessageMeta(timeStamp, processingTime, Some(processorContext.offset()))
+        println(messageMeta)
+        messagesMeta.append(
+          messageMeta
+        )
+      }
+    )
+
+    streams.start()
+
+    addShutdownHook
+
+    Future {
+      Range(0, 100).foreach {_ =>
+        Thread.sleep(1000)
+        logger.info(s"PROCESSED MESSAGES: ${messagesMeta.size}")
+      }
+      messagesMeta
+    }
+
+  }
+
+
+}
+
+
 trait KafkaSteamsConfig {
 
-  val inputTopic: String
+
 
   def clientId: String
 
-  lazy val inputStream = builder.stream(inputTopic, Consumed.`with`(stringSerde, stringSerde))
+  protected def addShutdownHook {
+    Runtime.getRuntime.addShutdownHook(new Thread(() => streams.close))
+  }
+
+
 
   val streamsConfiguration: Properties = {
     val p = new Properties()
@@ -109,17 +138,5 @@ trait KafkaSteamsConfig {
   lazy val builder: StreamsBuilder = new StreamsBuilder()
 
   lazy val streams: KafkaStreams = new KafkaStreams(builder.build(), streamsConfiguration)
-
-  //  Future{
-  //    Range(0, 1000).foreach{ _ =>
-  //      Thread.sleep(1000)
-  //
-  //      Thread.sleep(1000)
-  //      streams.metrics().asScala.foreach{ case (metricName, metric) =>
-  //        logger.info(s"METRIC [${metricName.description()}]: ${metric.metricValue()}")
-  //      }
-  //    }
-  //  }
-
 
 }
