@@ -16,6 +16,7 @@
 
 package com.ubirch.loadtest
 
+import com.ubirch.loadtest.streams.HighLevelAPI
 import org.slf4j.LoggerFactory
 
 /**
@@ -23,12 +24,15 @@ import org.slf4j.LoggerFactory
   *
   * @author Matthias L. Jugel
   */
-object Main extends App {
-  private val logger = LoggerFactory.getLogger("main")
+object Main extends App with HighLevelAPI {
 
   def startUp(): Unit = {
     logger.info("starting up ...")
-    // do something
+
+    prepare()
+    processMessages(1000000)
+    cleanUp()
+
   }
 
   startUp()
